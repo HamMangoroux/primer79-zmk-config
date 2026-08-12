@@ -1,18 +1,21 @@
 #include <physical_layouts.dtsi>
 
 / {
+    /* 1. THIS CHOSEN NODE MUST EXIST */
     chosen {
-        zmk,physical-layout = <&p79_physical_layout>;
+        zmk,physical-layout = &p79_physical_layout;
     };
 
     p79_physical_layout: p79_physical_layout {
         compatible = "zmk,physical-layout";
         display-name = "Default Layout";
-        transform = <&default_transform>;
         kscan = <&kscan0>;
-        keys
-            = <&key_physical_attrs 0 0 0 0 0 0 0>
-            /* Add one &key_physical_attrs entry for every key in your matrix */
-            ;
+        transform = <&default_transform>;
+        
+        /* 2. THIS KEYS ARRAY MUST NOT BE EMPTY */
+        keys = <
+            &key_physical_attrs 0 0 0 0 0 0 0
+            /* You must have one of these lines for every single key on your board */
+        >;
     };
 };
