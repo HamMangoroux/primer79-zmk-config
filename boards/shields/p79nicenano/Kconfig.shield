@@ -1,0 +1,2 @@
+config SHIELD_P79NICENANO
+    def_bool $(shields_list_contains,p79nicenano)
