@@ -1,3 +1,5 @@
+#include <physical_layout.dtsi>
+
 / {
     chosen {
         zmk,physical-layout = <&p79_physical_layout>;
