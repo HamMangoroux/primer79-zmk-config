@@ -1,8 +1,13 @@
 / {
-    p79_physical_layout: p79_physical_layout {
+    physical_layout0: physical_layout_0 {
         compatible = "zmk,physical-layout";
-        display-name = "Primer79";
+        display-name = "Default Layout";
         transform = <&default_transform>;
         kscan = <&kscan0>;
+        keys
+            = <&key_physical_attrs 0 0 0 0 0 0 0>
+            , <&key_physical_attrs 0 100 0 0 0 0 0>
+            /* Add one entry per key: width, height, x-position, y-position, rotation, rx, ry */
+            ;
     };
 };
