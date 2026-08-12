@@ -1,13 +1,16 @@
 / {
-    physical_layout0: physical_layout_0 {
+    chosen {
+        zmk,physical-layout = <&p79_physical_layout>;
+    };
+
+    p79_physical_layout: p79_physical_layout {
         compatible = "zmk,physical-layout";
         display-name = "Default Layout";
         transform = <&default_transform>;
         kscan = <&kscan0>;
         keys
             = <&key_physical_attrs 0 0 0 0 0 0 0>
-            , <&key_physical_attrs 0 100 0 0 0 0 0>
-            /* Add one entry per key: width, height, x-position, y-position, rotation, rx, ry */
+            /* Add one &key_physical_attrs entry for every key in your matrix */
             ;
     };
 };
