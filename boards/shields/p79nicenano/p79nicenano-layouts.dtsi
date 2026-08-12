@@ -1,5 +1,3 @@
-#include <dt-bindings/zmk/matrix_transform.h>
-
 / {
     p79_physical_layout: p79_physical_layout {
         compatible = "zmk,physical-layout";
