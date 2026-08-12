@@ -1,6 +1,6 @@
 if SHIELD_P79NICENANO
 
 config ZMK_KEYBOARD_NAME
-    default "p79nicenano"
+    default "Primer79"
 
 endif # SHIELD_P79NICENANO
