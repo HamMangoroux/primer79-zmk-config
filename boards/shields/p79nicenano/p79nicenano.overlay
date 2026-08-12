@@ -8,7 +8,9 @@
 
 / {
     chosen {
-        zmk,physical-layout = &default_layout;
+        zmk,kscan = &kscan0;
+        zmk,matrix-transform = &default_transform;
+        zmk,physical-layout = &p79_physical_layout;
     };
 
     kscan: kscan {
