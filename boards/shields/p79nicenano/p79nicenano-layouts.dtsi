@@ -1,4 +1,4 @@
-#include <physical_layout.dtsi>
+#include <physical_layouts.dtsi>
 
 / {
     chosen {
