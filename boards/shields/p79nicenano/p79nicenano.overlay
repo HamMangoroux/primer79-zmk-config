@@ -3,9 +3,9 @@
 
 / {
     chosen {
-        zmk,kscan = &kscan0;
-        zmk,matrix-transform = &default_transform;
-        zmk,physical-layout = &p79_physical_layout;
+        zmk,kscan = <&kscan0>;
+        zmk,matrix-transform = <&default_transform>;
+        zmk,physical-layout = <&p79_physical_layout>;
     };
 
     kscan0: kscan_0 {
@@ -13,7 +13,6 @@
         diode-direction = "col2row";
         wakeup-source;
 
-        // Replace these Pro Micro pin numbers with your Primer79 column pins
         col-gpios
             = <&pro_micro 15 GPIO_ACTIVE_HIGH>
             , <&pro_micro 14 GPIO_ACTIVE_HIGH>
@@ -21,7 +20,6 @@
             , <&pro_micro 10 GPIO_ACTIVE_HIGH>
             ;
 
-        // Replace these Pro Micro pin numbers with your Primer79 row pins
         row-gpios
             = <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>

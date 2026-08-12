@@ -29,8 +29,4 @@
             , <&key_physical_attrs 100 100  300 300 0 0 0>
             ;
     };
-
-    chosen {
-        zmk,physical-layout = &p79_physical_layout;
-    };
 };
