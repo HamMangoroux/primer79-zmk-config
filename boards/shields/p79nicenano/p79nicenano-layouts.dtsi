@@ -11,7 +11,7 @@
 // -- see the big comment block at the top of p79nicenano.overlay for why,
 // and what you need to do before this will actually work on real hardware.
 
-#include <dt-bindings/zmk/physical-layout.h>
+#include <physical_layouts.dtsi>
 
 / {
     physical_layouts {
