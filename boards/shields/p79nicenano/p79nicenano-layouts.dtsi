@@ -1,3 +1,16 @@
+// Physical layout for the Primer79 (yushakobo), converted from the vendor
+// QMK info.json "LAYOUT" (https://shop.yushakobo.jp/products/5384).
+//
+// All 81 physical key positions below are transcribed directly from that
+// info.json (units converted from KLE "u" to ZMK centi-keyunits, i.e. x100).
+// This part is NOT dependent on the electrical matrix wiring, so it is safe
+// to use as-is.
+//
+// The `transform` property below points at `default_transform`, which is
+// defined in p79nicenano.overlay. That transform is currently a PLACEHOLDER
+// -- see the big comment block at the top of p79nicenano.overlay for why,
+// and what you need to do before this will actually work on real hardware.
+
 #include <dt-bindings/zmk/physical-layout.h>
 
 / {
@@ -7,22 +20,109 @@
         default_layout: default_layout {
             compatible = "zmk,physical-layout";
             display-name = "Primer79 Standard";
-            
-            // This links your physical keys to your electrical matrix
+
+            // Links the physical keys below to the electrical matrix.
+            // Defined in p79nicenano.overlay -- currently a placeholder.
             transform = <&default_transform>;
-            
-            // Format: width, height, x, y, rotation, rx, ry
-            // 1U = 100. So a key at X=0, Y=0 is 100 100 0 0.
-            // A key 1U to the right is 100 100 100 0.
+
+            // Format per key: width, height, x, y, rotation, rx, ry
+            // 1u = 100 centi-keyunits. Order matches info.json exactly, and
+            // must match the order of `bindings` in p79nicenano.keymap and
+            // the order of `map` entries in `default_transform`.
             keys  = <
-                &key_physical_attrs 100 100 0 0 0 0 0    // ESC
-                &key_physical_attrs 100 100 100 0 0 0 0  // F1
-                // ... You must map all 79 physical keys here in the 
-                // exact order they appear in your transform map.
+                // row y=0
+                &key_physical_attrs  100 100    0   0 0 0 0  // [ 0] Esc
+                &key_physical_attrs  100 100  200   0 0 0 0  // [ 1] F1
+                &key_physical_attrs  100 100  300   0 0 0 0  // [ 2] F2
+                &key_physical_attrs  100 100  400   0 0 0 0  // [ 3] F3
+                &key_physical_attrs  100 100  500   0 0 0 0  // [ 4] F4
+                &key_physical_attrs  100 100  650   0 0 0 0  // [ 5] F5
+                &key_physical_attrs  100 100  750   0 0 0 0  // [ 6] F6
+                &key_physical_attrs  100 100  850   0 0 0 0  // [ 7] F7
+                &key_physical_attrs  100 100  950   0 0 0 0  // [ 8] F8
+                &key_physical_attrs  100 100 1100   0 0 0 0  // [ 9] F9
+                &key_physical_attrs  100 100 1200   0 0 0 0  // [10] F10
+                &key_physical_attrs  100 100 1300   0 0 0 0  // [11] F11
+                &key_physical_attrs  100 100 1400   0 0 0 0  // [12] F12
+                // row y=1.5
+                &key_physical_attrs  100 100    0 150 0 0 0  // [13] ~
+                &key_physical_attrs  100 100  100 150 0 0 0  // [14] !
+                &key_physical_attrs  100 100  200 150 0 0 0  // [15] @
+                &key_physical_attrs  100 100  300 150 0 0 0  // [16] #
+                &key_physical_attrs  100 100  400 150 0 0 0  // [17] $
+                &key_physical_attrs  100 100  500 150 0 0 0  // [18] %
+                &key_physical_attrs  100 100  600 150 0 0 0  // [19] ^
+                &key_physical_attrs  100 100  700 150 0 0 0  // [20] &
+                &key_physical_attrs  100 100  800 150 0 0 0  // [21] *
+                &key_physical_attrs  100 100  900 150 0 0 0  // [22] (
+                &key_physical_attrs  100 100 1000 150 0 0 0  // [23] )
+                &key_physical_attrs  100 100 1100 150 0 0 0  // [24] _
+                &key_physical_attrs  100 100 1200 150 0 0 0  // [25] +
+                &key_physical_attrs  200 100 1300 150 0 0 0  // [26] Backspace
+                // row y=2.5
+                &key_physical_attrs  150 100    0 250 0 0 0  // [27] Tab
+                &key_physical_attrs  100 100  150 250 0 0 0  // [28] Q
+                &key_physical_attrs  100 100  250 250 0 0 0  // [29] W
+                &key_physical_attrs  100 100  350 250 0 0 0  // [30] E
+                &key_physical_attrs  100 100  450 250 0 0 0  // [31] R
+                &key_physical_attrs  100 100  550 250 0 0 0  // [32] T
+                &key_physical_attrs  100 100  650 250 0 0 0  // [33] Y
+                &key_physical_attrs  100 100  750 250 0 0 0  // [34] U
+                &key_physical_attrs  100 100  850 250 0 0 0  // [35] I
+                &key_physical_attrs  100 100  950 250 0 0 0  // [36] O
+                &key_physical_attrs  100 100 1050 250 0 0 0  // [37] P
+                &key_physical_attrs  100 100 1150 250 0 0 0  // [38] {
+                &key_physical_attrs  100 100 1250 250 0 0 0  // [39] }
+                &key_physical_attrs  150 100 1350 250 0 0 0  // [40] |
+                &key_physical_attrs  100 100 1550 250 0 0 0  // [41] PrtSc
+                &key_physical_attrs  100 100 1650 250 0 0 0  // [42] Home
+                // row y=3.5
+                &key_physical_attrs  175 100    0 350 0 0 0  // [43] Caps Lock
+                &key_physical_attrs  100 100  175 350 0 0 0  // [44] A
+                &key_physical_attrs  100 100  275 350 0 0 0  // [45] S
+                &key_physical_attrs  100 100  375 350 0 0 0  // [46] D
+                &key_physical_attrs  100 100  475 350 0 0 0  // [47] F
+                &key_physical_attrs  100 100  575 350 0 0 0  // [48] G
+                &key_physical_attrs  100 100  675 350 0 0 0  // [49] H
+                &key_physical_attrs  100 100  775 350 0 0 0  // [50] J
+                &key_physical_attrs  100 100  875 350 0 0 0  // [51] K
+                &key_physical_attrs  100 100  975 350 0 0 0  // [52] L
+                &key_physical_attrs  100 100 1075 350 0 0 0  // [53] :
+                &key_physical_attrs  100 100 1175 350 0 0 0  // [54] "
+                &key_physical_attrs  225 100 1275 350 0 0 0  // [55] Enter
+                &key_physical_attrs  100 100 1550 350 0 0 0  // [56] Delete
+                &key_physical_attrs  100 100 1650 350 0 0 0  // [57] End
+                // row y=4.5
+                &key_physical_attrs  225 100    0 450 0 0 0  // [58] Shift(L)
+                &key_physical_attrs  100 100  225 450 0 0 0  // [59] Z
+                &key_physical_attrs  100 100  325 450 0 0 0  // [60] X
+                &key_physical_attrs  100 100  425 450 0 0 0  // [61] C
+                &key_physical_attrs  100 100  525 450 0 0 0  // [62] V
+                &key_physical_attrs  100 100  625 450 0 0 0  // [63] B
+                &key_physical_attrs  100 100  725 450 0 0 0  // [64] N
+                &key_physical_attrs  100 100  825 450 0 0 0  // [65] M
+                &key_physical_attrs  100 100  925 450 0 0 0  // [66] <
+                &key_physical_attrs  100 100 1025 450 0 0 0  // [67] >
+                &key_physical_attrs  100 100 1125 450 0 0 0  // [68] ?
+                &key_physical_attrs  275 100 1225 450 0 0 0  // [69] Shift(R)
+                // row y=5
+                &key_physical_attrs  100 100 1550 500 0 0 0  // [70] Up
+                // row y=5.5
+                &key_physical_attrs  125 100    0 550 0 0 0  // [71] Ctrl(L)
+                &key_physical_attrs  125 100  125 550 0 0 0  // [72] Win(L)
+                &key_physical_attrs  125 100  250 550 0 0 0  // [73] Alt(L)
+                &key_physical_attrs  625 100  375 550 0 0 0  // [74] Space
+                &key_physical_attrs  125 100 1000 550 0 0 0  // [75] Alt(R)
+                &key_physical_attrs  125 100 1125 550 0 0 0  // [76] Win(R)
+                &key_physical_attrs  125 100 1250 550 0 0 0  // [77] Menu
+                // row y=6
+                &key_physical_attrs  100 100 1450 600 0 0 0  // [78] Left
+                &key_physical_attrs  100 100 1550 600 0 0 0  // [79] Down
+                &key_physical_attrs  100 100 1650 600 0 0 0  // [80] Right
             >;
         };
     };
-    
+
     chosen {
         zmk,physical-layout = &default_layout;
     };

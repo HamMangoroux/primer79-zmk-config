@@ -1,4 +1,3 @@
-# This file was generated from a template. Edit it to match your keyboard.
 # See https://zmk.dev/docs/development/hardware-integration/hardware-metadata-files
 # for instructions.
 
@@ -7,13 +6,12 @@ id: p79nicenano
 name: Primer79Nice!Nano
 type: shield
 
-# Set this to a URL that documents the keyboard.
-url: https://example.com
+url: https://shop.yushakobo.jp/products/5384
 
-# Add any features your keyboard supports here.
 # See https://zmk.dev/docs/development/hardware-integration/hardware-metadata-files#features
 features:
   - keys
+  - encoder # 2x rotary encoders
   - studio  # Remove this line if your keyboard will not support ZMK Studio
 
 requires:

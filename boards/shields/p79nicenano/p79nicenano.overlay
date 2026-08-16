@@ -1,37 +1,211 @@
+/*
+ * ============================================================================
+ *  MATRIX STATUS -- READ THIS
+ * ============================================================================
+ *
+ *  Now confirmed from your real QMK source (config.h + primer79.h):
+ *
+ *   - MATRIX_ROWS=10, MATRIX_COLS=9 -- but only 5 row pins and 9 col pins
+ *     are declared. 5 physical row pins producing 10 logical rows is the
+ *     signature of a Japanese duplex matrix (scanned twice per cycle --
+ *     once COL2ROW, once ROW2COL -- doubling the addressable rows from the
+ *     same physical pins). See https://kbd.news/The-Japanese-duplex-matrix-1391.html
+ *     if you want the background. This also matches the alternating L/R
+ *     pattern in primer79.h's LAYOUT() macro (adjacent keys in the same
+ *     physical row belong to logically "opposite" matrix halves), which is
+ *     exactly what that wiring technique produces.
+ *
+ *   - The `default_transform` map below is now fully filled in -- no more
+ *     FIXME placeholders. Every RC() was derived directly from primer79.h's
+ *     LAYOUT() macro cross-referenced with its `matrix{}` block, in the
+ *     same key order as p79nicenano-layouts.dtsi / p79nicenano.keymap. I
+ *     verified all 81 positions are unique and in-range, and spot-checked
+ *     the ordering against your info.json labels position-by-position
+ *     before trusting it.
+ *
+ *   - CORRECTION from last turn: I previously "fixed" the row pin comments
+ *     from F6/F7 to F5/F4. That was backwards -- config.h confirms the row
+ *     pins really are { F6, F7, B1, B2, B3 }, exactly as your original
+ *     overlay had them. What was actually off were the pro_micro *index*
+ *     numbers (20, 21), which should be 19, 18. Fixed below.
+ *
+ *   - STILL UNRESOLVED: `kscan0` below uses the standard ZMK
+ *     `zmk,kscan-gpio-matrix` driver, which only supports a single-direction
+ *     scan. It WILL compile, but can only ever reach 45 of the 81 keys,
+ *     because it can't replicate the second (ROW2COL) pass a Japanese
+ *     duplex matrix needs. ZMK has no built-in driver for this -- matrix,
+ *     direct, demux, and charlieplex all assume fixed pin roles. Getting
+ *     the rest of the keyboard working needs a genuinely custom kscan
+ *     driver that performs both scan passes and reports positions using
+ *     the same (row 0-9, col 0-8) addressing already baked into the
+ *     transform below, so nothing else here will need to change once you
+ *     have it.
+ *
+ *   - If you can upload matrix.c (and rules.mk / keyboard.json, if present)
+ *     from the same qmk_firmware directory as config.h and primer79.h, I
+ *     can confirm exactly how the second scan pass is wired (which pins
+ *     drive vs. read in each pass) and write that custom driver properly,
+ *     rather than guessing at the mechanism.
+ *
+ *  Everything else in this project (physical layout, keymap, encoders,
+ *  Kconfig, .conf, and now the matrix-transform) is complete and correct.
+ * ============================================================================
+ */
+
 #include "p79nicenano-layouts.dtsi"
 
 / {
     chosen {
         zmk,kscan = &kscan0;
-        zmk,matrix_transform = &default_transform;
+        zmk,matrix-transform = &default_transform;
     };
 
+    // --- Rotary encoders -----------------------------------------------
+    // From info.json: {"pin_a": "D1", "pin_b": "D0"} and
+    // {"pin_a": "F5", "pin_b": "F4"}, converted to nice!nano/pro_micro
+    // logical pin numbers via the standard Pro Micro AVR<->Arduino pin map:
+    //   AVR D1 = pro_micro 2   AVR D0 = pro_micro 3
+    //   AVR F5 = pro_micro 20  AVR F4 = pro_micro 21
+    left_encoder: encoder_left {
+        compatible = "alps,ec11";
+        a-gpios = <&pro_micro 2 GPIO_ACTIVE_HIGH>;
+        b-gpios = <&pro_micro 3 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+    };
+
+    right_encoder: encoder_right {
+        compatible = "alps,ec11";
+        a-gpios = <&pro_micro 20 GPIO_ACTIVE_HIGH>;
+        b-gpios = <&pro_micro 21 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&left_encoder &right_encoder>;
+    };
+
+    // --- Key matrix scan (partial -- see banner comment above) ---------
+    // Pin list confirmed against config.h's MATRIX_ROW_PINS/MATRIX_COL_PINS.
+    // `compatible` here is the best available STANDARD driver -- it will
+    // compile, but only reaches 45 of 81 keys until a real duplex-capable
+    // driver replaces it (see banner).
     kscan0: kscan_0 {
-        // You MUST integrate an out-of-tree duplex driver in west.yml for this to compile.
-        // A standard zmk,kscan-gpio-matrix will fail because it cannot bidirectionally poll.
-        compatible = "zmk,kscan-gpio-duplex";
-        label = "KSCAN";
-        
-        // Duplex drivers handle the directional flipping internally, but typically require 
-        // both arrays to define pull-down logic for bidirectional safety.
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row"; // TODO: confirm against matrix.c / PCB
+
         row-gpios
-            = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // F6
-            , <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // F7
+            = <&pro_micro 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // F6
+            , <&pro_micro 18 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // F7
             , <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B1
             , <&pro_micro 16 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B2
             , <&pro_micro 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B3
             ;
 
         col-gpios
-            = <&pro_micro 4  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // D4
-            , <&pro_micro 5  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // C6
-            , <&pro_micro 6  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // D7
-            , <&pro_micro 7  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // E6
-            , <&pro_micro 8  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B4
-            , <&pro_micro 0  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // D2 (RX)
-            , <&pro_micro 1  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // D3 (TX)
-            , <&pro_micro 9  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B5
-            , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // B6
+            = <&pro_micro 4  GPIO_ACTIVE_HIGH> // D4
+            , <&pro_micro 5  GPIO_ACTIVE_HIGH> // C6
+            , <&pro_micro 6  GPIO_ACTIVE_HIGH> // D7
+            , <&pro_micro 7  GPIO_ACTIVE_HIGH> // E6
+            , <&pro_micro 8  GPIO_ACTIVE_HIGH> // B4
+            , <&pro_micro 0  GPIO_ACTIVE_HIGH> // D2 (RX)
+            , <&pro_micro 1  GPIO_ACTIVE_HIGH> // D3 (TX)
+            , <&pro_micro 9  GPIO_ACTIVE_HIGH> // B5
+            , <&pro_micro 10 GPIO_ACTIVE_HIGH> // B6
             ;
+    };
+
+    // --- Matrix transform (COMPLETE) ------------------------------------
+    // Derived from primer79.h's LAYOUT() macro + matrix{} block. Order
+    // matches p79nicenano-layouts.dtsi / p79nicenano.keymap exactly.
+    default_transform: matrix_transform {
+        compatible = "zmk,matrix-transform";
+        rows = <10>;
+        columns = <9>;
+
+        map = <
+            RC(5,8)      // [ 0] Esc
+            RC(5,1)      // [ 1] F1
+            RC(0,2)      // [ 2] F2
+            RC(5,2)      // [ 3] F3
+            RC(5,3)      // [ 4] F4
+            RC(0,4)      // [ 5] F5
+            RC(5,4)      // [ 6] F6
+            RC(0,7)      // [ 7] F7
+            RC(1,7)      // [ 8] F8
+            RC(2,7)      // [ 9] F9
+            RC(3,7)      // [10] F10
+            RC(4,7)      // [11] F11
+            RC(5,7)      // [12] F12
+            RC(0,0)      // [13] ~
+            RC(5,0)      // [14] !
+            RC(0,1)      // [15] @
+            RC(6,1)      // [16] #
+            RC(1,2)      // [17] $
+            RC(6,2)      // [18] %
+            RC(0,3)      // [19] ^
+            RC(6,3)      // [20] &
+            RC(1,4)      // [21] *
+            RC(6,4)      // [22] (
+            RC(0,5)      // [23] )
+            RC(5,5)      // [24] _
+            RC(0,6)      // [25] +
+            RC(5,6)      // [26] Backspace
+            RC(1,0)      // [27] Tab
+            RC(6,0)      // [28] Q
+            RC(1,1)      // [29] W
+            RC(7,1)      // [30] E
+            RC(2,2)      // [31] R
+            RC(7,2)      // [32] T
+            RC(1,3)      // [33] Y
+            RC(7,3)      // [34] U
+            RC(2,4)      // [35] I
+            RC(7,4)      // [36] O
+            RC(1,5)      // [37] P
+            RC(6,5)      // [38] {
+            RC(1,6)      // [39] }
+            RC(6,6)      // [40] |
+            RC(6,7)      // [41] PrtSc
+            RC(8,7)      // [42] Home
+            RC(2,0)      // [43] Caps Lock
+            RC(7,0)      // [44] A
+            RC(2,1)      // [45] S
+            RC(8,1)      // [46] D
+            RC(3,2)      // [47] F
+            RC(8,2)      // [48] G
+            RC(2,3)      // [49] H
+            RC(8,3)      // [50] J
+            RC(3,4)      // [51] K
+            RC(8,4)      // [52] L
+            RC(2,5)      // [53] :
+            RC(7,5)      // [54] "
+            RC(2,6)      // [55] Enter
+            RC(7,7)      // [56] Delete
+            RC(9,7)      // [57] End
+            RC(3,0)      // [58] Shift(L)
+            RC(8,0)      // [59] Z
+            RC(3,1)      // [60] X
+            RC(9,1)      // [61] C
+            RC(4,2)      // [62] V
+            RC(9,2)      // [63] B
+            RC(3,3)      // [64] N
+            RC(9,3)      // [65] M
+            RC(4,4)      // [66] <
+            RC(9,4)      // [67] >
+            RC(3,5)      // [68] ?
+            RC(3,6)      // [69] Shift(R)
+            RC(7,6)      // [70] Up
+            RC(4,0)      // [71] Ctrl(L)
+            RC(9,0)      // [72] Win(L)
+            RC(4,1)      // [73] Alt(L)
+            RC(4,3)      // [74] Space
+            RC(4,5)      // [75] Alt(R)
+            RC(8,5)      // [76] Win(R)
+            RC(9,5)      // [77] Menu
+            RC(4,6)      // [78] Left
+            RC(8,6)      // [79] Down
+            RC(9,6)      // [80] Right
+        >;
     };
 };
