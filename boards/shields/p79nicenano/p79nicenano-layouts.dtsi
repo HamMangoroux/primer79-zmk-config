@@ -7,9 +7,11 @@
 // to use as-is.
 //
 // The `transform` property below points at `default_transform`, which is
-// defined in p79nicenano.overlay. That transform is currently a PLACEHOLDER
-// -- see the big comment block at the top of p79nicenano.overlay for why,
-// and what you need to do before this will actually work on real hardware.
+// defined in p79nicenano.overlay. `kscan` is assigned to this layout from
+// that same overlay (via `&default_layout { kscan = <&kscan0>; };`) rather
+// than through a `chosen` node -- ZMK Studio requires it this way. See the
+// big comment block at the top of p79nicenano.overlay for the matrix's
+// current status.
 
 #include <physical_layouts.dtsi>
 

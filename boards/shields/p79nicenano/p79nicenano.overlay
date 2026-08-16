@@ -56,10 +56,13 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 
 / {
-    chosen {
-        zmk,kscan = &kscan0;
-        zmk,matrix-transform = &default_transform;
-    };
+    // NOTE: zmk,kscan / zmk,matrix-transform are intentionally NOT set here.
+    // ZMK Studio requires physical layouts to carry their own `kscan` and
+    // `transform` properties instead of relying on `chosen` -- see
+    // https://zmk.dev/docs/features/studio#adding-zmk-studio-support-to-a-keyboard
+    // ("The keyboard should also not have a chosen zmk,matrix-transform.").
+    // Both are assigned directly on `default_layout` in
+    // p79nicenano-layouts.dtsi (transform) and below (kscan).
 
     // --- Rotary encoders -----------------------------------------------
     // From info.json: {"pin_a": "D1", "pin_b": "D0"} and
@@ -115,6 +118,13 @@
             , <&pro_micro 9  GPIO_ACTIVE_HIGH> // B5
             , <&pro_micro 10 GPIO_ACTIVE_HIGH> // B6
             ;
+    };
+
+    // Assign this shield's kscan to the physical layout defined in
+    // p79nicenano-layouts.dtsi (which already carries `transform`).
+    // Studio requires this to live on the layout node, not in `chosen`.
+    &default_layout {
+        kscan = <&kscan0>;
     };
 
     // --- Matrix transform (COMPLETE) ------------------------------------
