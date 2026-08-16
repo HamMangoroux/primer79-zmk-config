@@ -120,13 +120,6 @@
             ;
     };
 
-    // Assign this shield's kscan to the physical layout defined in
-    // p79nicenano-layouts.dtsi (which already carries `transform`).
-    // Studio requires this to live on the layout node, not in `chosen`.
-    &default_layout {
-        kscan = <&kscan0>;
-    };
-
     // --- Matrix transform (COMPLETE) ------------------------------------
     // Derived from primer79.h's LAYOUT() macro + matrix{} block. Order
     // matches p79nicenano-layouts.dtsi / p79nicenano.keymap exactly.
@@ -219,4 +212,13 @@
             RC(9,6)      // [80] Right
         >;
     };
+};
+
+// Assign this shield's kscan to the physical layout defined in
+// p79nicenano-layouts.dtsi (which already carries `transform`).
+// Studio requires this to live on the layout node, not in `chosen`.
+// This must be a top-level block (sibling of `/ { ... }`), not nested
+// inside it -- label references are always root-level.
+&default_layout {
+    kscan = <&kscan0>;
 };
