@@ -16,6 +16,16 @@
 #include "p79nicenano-layouts.dtsi"
 #include <dt-bindings/zmk/matrix_transform.h>
 
+/*
+ * Primer79 matrix lines use Pro Micro pins D10 and D16. On an nRF52840 those
+ * are P0.09 and P0.10, which power up as NFC pins unless UICR configures them
+ * for GPIO. Make that conversion explicit rather than relying on a bootloader
+ * having done it already.
+ */
+&uicr {
+    nfct-pins-as-gpios;
+};
+
 / {
     /*
      * The vendor QMK definition uses three quadrature transitions per action.
