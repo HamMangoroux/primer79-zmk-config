@@ -17,26 +17,35 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 
 / {
-    // Encoder pins and resolution come from the vendor info.json.
+    /*
+     * The vendor QMK definition uses three quadrature transitions per action.
+     * The recommended encoders have 24 detents, so ZMK's supported encoder
+     * model expresses that as 72 electrical steps and 24 behavior triggers per
+     * rotation (the same 3:1 ratio). ZMK and this QMK version assign opposite
+     * signs to the same A/B transition, so the logical A/B declarations are
+     * intentionally exchanged to preserve the vendor's physical direction:
+     * clockwise is the first sensor binding.
+     */
     left_encoder: encoder_left {
         compatible = "alps,ec11";
-        a-gpios = <&pro_micro 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        b-gpios = <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        resolution = <3>;
+        a-gpios = <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // QMK pin_b: D0
+        b-gpios = <&pro_micro 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // QMK pin_a: D1
+        steps = <72>;
         status = "okay";
     };
 
     right_encoder: encoder_right {
         compatible = "alps,ec11";
-        a-gpios = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        b-gpios = <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        resolution = <3>;
+        a-gpios = <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // QMK pin_b: F4
+        b-gpios = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // QMK pin_a: F5
+        steps = <72>;
         status = "okay";
     };
 
     sensors: sensors {
         compatible = "zmk,keymap-sensors";
         sensors = <&left_encoder &right_encoder>;
+        triggers-per-rotation = <24>;
     };
 
     // Pin order is five vendor row pins followed by nine vendor column pins.
