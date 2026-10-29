@@ -1,70 +1,36 @@
 /*
- * ============================================================================
- *  MATRIX STATUS -- RESOLVED (real, in-tree ZMK driver, no custom C)
- * ============================================================================
+ * Primer79 hardware definition for a nice!nano.
  *
- *  Your uploaded matrix.c scans the same 14 physical pins twice per cycle
- *  (5 row_pins + 9 col_pins), flipping which set drives vs. senses between
- *  passes, to get 90 addressable positions instead of the 45 a plain
- *  single-direction matrix would give. This technique goes by a few names
- *  in different communities -- "Japanese duplex matrix" (kbd.news), or
- *  "charlieplexing" (the term ZMK itself settled on, see the discussion at
- *  https://github.com/zmkfirmware/zmk/pull/1694) -- but electrically it's
- *  the same thing: every pin can act as either an output (driven) or an
- *  input (sensed) depending on which pair is being read.
+ * The original QMK matrix.c scans the five row pins against the nine column
+ * pins, then reverses the pin roles to scan the other diode direction. ZMK's
+ * GPIO charlieplex driver performs this same bidirectional scan. The transform
+ * below translates its 14-by-14 directed pin coordinates back into the 10-by-9
+ * coordinates used by the vendor LAYOUT macro.
  *
- *  ZMK has a real, in-tree, merged driver for exactly this:
- *  `zmk,kscan-gpio-charlieplex`. One driver instance, one flat list of all
- *  14 pins, no shared-pin conflicts (unlike the composite-of-two-matrices
- *  approach I tried and abandoned earlier), no custom C driver needed.
- *
- *  RC(a,b) in this driver means "pin a (in the flat `gpios` list below)
- *  drives, pin b senses" -- not row-list/col-list like the standard matrix
- *  driver. default_transform below has been regenerated for this addressing
- *  scheme, derived directly from matrix.c's actual two-pass logic:
- *    - matrix.c pass 1 (row_pins[r] drives, col_pins[c] senses)
- *        -> RC(r, 5+c)      (row_pins are flat-list indices 0-4)
- *    - matrix.c pass 2 (col_pins[c] drives, row_pins[r] senses)
- *        -> RC(5+c, r)      (col_pins are flat-list indices 5-13)
- *  All 90 possible (row,col) pairs were checked programmatically: each
- *  produces a unique RC() with no self-pairs (a pin can't drive and sense
- *  itself), and all 81 real keys land on distinct positions.
- *
- *  No interrupt-gpios is set below -- matrix.c doesn't use a dedicated
- *  interrupt pin either, so this polls continuously, matching the
- *  original firmware's behavior.
- * ============================================================================
+ * Sources:
+ * https://github.com/yushakobo/qmk_firmware/blob/add-primer/keyboards/yushakobo/primer79/matrix.c
+ * https://github.com/yushakobo/qmk_firmware/blob/add-primer/keyboards/yushakobo/primer79/config.h
+ * https://github.com/yushakobo/qmk_firmware/blob/add-primer/keyboards/yushakobo/primer79/primer79.h
  */
 
 #include "p79nicenano-layouts.dtsi"
 #include <dt-bindings/zmk/matrix_transform.h>
 
 / {
-    // NOTE: zmk,kscan / zmk,matrix-transform are intentionally NOT set here.
-    // ZMK Studio requires physical layouts to carry their own `kscan` and
-    // `transform` properties instead of relying on `chosen` -- see
-    // https://zmk.dev/docs/features/studio#adding-zmk-studio-support-to-a-keyboard
-    // ("The keyboard should also not have a chosen zmk,matrix-transform.").
-    // Both are assigned directly on `default_layout` in
-    // p79nicenano-layouts.dtsi (transform) and below (kscan).
-
-    // --- Rotary encoders -----------------------------------------------
-    // From info.json: {"pin_a": "D1", "pin_b": "D0"} and
-    // {"pin_a": "F5", "pin_b": "F4"}, converted to nice!nano/pro_micro
-    // logical pin numbers via the standard Pro Micro AVR<->Arduino pin map:
-    //   AVR D1 = pro_micro 2   AVR D0 = pro_micro 3
-    //   AVR F5 = pro_micro 20  AVR F4 = pro_micro 21
+    // Encoder pins and resolution come from the vendor info.json.
     left_encoder: encoder_left {
         compatible = "alps,ec11";
-        a-gpios = <&pro_micro 2 GPIO_ACTIVE_HIGH>;
-        b-gpios = <&pro_micro 3 GPIO_ACTIVE_HIGH>;
+        a-gpios = <&pro_micro 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        resolution = <3>;
         status = "okay";
     };
 
     right_encoder: encoder_right {
         compatible = "alps,ec11";
-        a-gpios = <&pro_micro 20 GPIO_ACTIVE_HIGH>;
-        b-gpios = <&pro_micro 21 GPIO_ACTIVE_HIGH>;
+        a-gpios = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        resolution = <3>;
         status = "okay";
     };
 
@@ -73,135 +39,129 @@
         sensors = <&left_encoder &right_encoder>;
     };
 
-    // --- Key matrix scan (COMPLETE -- real in-tree charlieplex driver) --
-    // Flat list of all 14 physical pins: row_pins first (indices 0-4),
-    // then col_pins (indices 5-13), matching config.h's declared order
-    // exactly. This ordering is what default_transform's RC() values
-    // below assume -- don't reorder without regenerating the transform.
+    // Pin order is five vendor row pins followed by nine vendor column pins.
+    // Active-low makes every selected pin drive low while all other pins are
+    // inputs with pull-ups, matching the QMK implementation.
     kscan0: kscan_0 {
         compatible = "zmk,kscan-gpio-charlieplex";
         wakeup-source;
+        debounce-press-ms = <5>;
+        debounce-release-ms = <5>;
+        debounce-scan-period-ms = <1>;
+        poll-period-ms = <10>;
 
         gpios
-            = <&pro_micro 19 GPIO_ACTIVE_HIGH> // 0: F6  (row_pins[0])
-            , <&pro_micro 18 GPIO_ACTIVE_HIGH> // 1: F7  (row_pins[1])
-            , <&pro_micro 15 GPIO_ACTIVE_HIGH> // 2: B1  (row_pins[2])
-            , <&pro_micro 16 GPIO_ACTIVE_HIGH> // 3: B2  (row_pins[3])
-            , <&pro_micro 14 GPIO_ACTIVE_HIGH> // 4: B3  (row_pins[4])
-            , <&pro_micro 4  GPIO_ACTIVE_HIGH> // 5: D4  (col_pins[0])
-            , <&pro_micro 5  GPIO_ACTIVE_HIGH> // 6: C6  (col_pins[1])
-            , <&pro_micro 6  GPIO_ACTIVE_HIGH> // 7: D7  (col_pins[2])
-            , <&pro_micro 7  GPIO_ACTIVE_HIGH> // 8: E6  (col_pins[3])
-            , <&pro_micro 8  GPIO_ACTIVE_HIGH> // 9: B4  (col_pins[4])
-            , <&pro_micro 0  GPIO_ACTIVE_HIGH> // 10: D2 (col_pins[5], RX)
-            , <&pro_micro 1  GPIO_ACTIVE_HIGH> // 11: D3 (col_pins[6], TX)
-            , <&pro_micro 9  GPIO_ACTIVE_HIGH> // 12: B5 (col_pins[7])
-            , <&pro_micro 10 GPIO_ACTIVE_HIGH> // 13: B6 (col_pins[8])
+            = <&pro_micro 19 GPIO_ACTIVE_LOW> //  0: F6, vendor row 0
+            , <&pro_micro 18 GPIO_ACTIVE_LOW> //  1: F7, vendor row 1
+            , <&pro_micro 15 GPIO_ACTIVE_LOW> //  2: B1, vendor row 2
+            , <&pro_micro 16 GPIO_ACTIVE_LOW> //  3: B2, vendor row 3
+            , <&pro_micro 14 GPIO_ACTIVE_LOW> //  4: B3, vendor row 4
+            , <&pro_micro 4  GPIO_ACTIVE_LOW> //  5: D4, vendor column 0
+            , <&pro_micro 5  GPIO_ACTIVE_LOW> //  6: C6, vendor column 1
+            , <&pro_micro 6  GPIO_ACTIVE_LOW> //  7: D7, vendor column 2
+            , <&pro_micro 7  GPIO_ACTIVE_LOW> //  8: E6, vendor column 3
+            , <&pro_micro 8  GPIO_ACTIVE_LOW> //  9: B4, vendor column 4
+            , <&pro_micro 0  GPIO_ACTIVE_LOW> // 10: D2, vendor column 5
+            , <&pro_micro 1  GPIO_ACTIVE_LOW> // 11: D3, vendor column 6
+            , <&pro_micro 9  GPIO_ACTIVE_LOW> // 12: B5, vendor column 7
+            , <&pro_micro 10 GPIO_ACTIVE_LOW> // 13: B6, vendor column 8
             ;
     };
 
-    // --- Matrix transform (COMPLETE -- charlieplex RC() addressing) ----
-    // Derived from primer79.h's LAYOUT() macro + matrix{} block (giving
-    // matrix.c's true (row,col) per key), then converted through the
-    // charlieplex RC(driven_pin, sensed_pin) scheme above. Order matches
-    // p79nicenano-layouts.dtsi / p79nicenano.keymap exactly.
+    // For vendor rows 0-4: output=row pin, input=column pin.
+    // For vendor rows 5-9: output=column pin, input=row pin.
     default_transform: matrix_transform {
         compatible = "zmk,matrix-transform";
         rows = <14>;
         columns = <14>;
 
         map = <
-            RC(13,0)     // [ 0] Esc
-            RC(6,0)      // [ 1] F1
-            RC(0,7)      // [ 2] F2
-            RC(7,0)      // [ 3] F3
-            RC(8,0)      // [ 4] F4
-            RC(0,9)      // [ 5] F5
-            RC(9,0)      // [ 6] F6
-            RC(0,12)     // [ 7] F7
-            RC(1,12)     // [ 8] F8
-            RC(2,12)     // [ 9] F9
-            RC(3,12)     // [10] F10
-            RC(4,12)     // [11] F11
-            RC(12,0)     // [12] F12
-            RC(0,5)      // [13] ~
-            RC(5,0)      // [14] !
-            RC(0,6)      // [15] @
-            RC(6,1)      // [16] #
-            RC(1,7)      // [17] $
-            RC(7,1)      // [18] %
-            RC(0,8)      // [19] ^
-            RC(8,1)      // [20] &
-            RC(1,9)      // [21] *
-            RC(9,1)      // [22] (
-            RC(0,10)     // [23] )
-            RC(10,0)     // [24] _
-            RC(0,11)     // [25] +
-            RC(11,0)     // [26] Backspace
-            RC(1,5)      // [27] Tab
-            RC(5,1)      // [28] Q
-            RC(1,6)      // [29] W
-            RC(6,2)      // [30] E
-            RC(2,7)      // [31] R
-            RC(7,2)      // [32] T
-            RC(1,8)      // [33] Y
-            RC(8,2)      // [34] U
-            RC(2,9)      // [35] I
-            RC(9,2)      // [36] O
-            RC(1,10)     // [37] P
-            RC(10,1)     // [38] {
-            RC(1,11)     // [39] }
-            RC(11,1)     // [40] |
-            RC(12,1)     // [41] PrtSc
-            RC(12,3)     // [42] Home
-            RC(2,5)      // [43] Caps Lock
-            RC(5,2)      // [44] A
-            RC(2,6)      // [45] S
-            RC(6,3)      // [46] D
-            RC(3,7)      // [47] F
-            RC(7,3)      // [48] G
-            RC(2,8)      // [49] H
-            RC(8,3)      // [50] J
-            RC(3,9)      // [51] K
-            RC(9,3)      // [52] L
-            RC(2,10)     // [53] :
-            RC(10,2)     // [54] "
-            RC(2,11)     // [55] Enter
-            RC(12,2)     // [56] Delete
-            RC(12,4)     // [57] End
-            RC(3,5)      // [58] Shift(L)
-            RC(5,3)      // [59] Z
-            RC(3,6)      // [60] X
-            RC(6,4)      // [61] C
-            RC(4,7)      // [62] V
-            RC(7,4)      // [63] B
-            RC(3,8)      // [64] N
-            RC(8,4)      // [65] M
-            RC(4,9)      // [66] <
-            RC(9,4)      // [67] >
-            RC(3,10)     // [68] ?
-            RC(3,11)     // [69] Shift(R)
-            RC(11,2)     // [70] Up
-            RC(4,5)      // [71] Ctrl(L)
-            RC(5,4)      // [72] Win(L)
-            RC(4,6)      // [73] Alt(L)
-            RC(4,8)      // [74] Space
-            RC(4,10)     // [75] Alt(R)
-            RC(10,3)     // [76] Win(R)
-            RC(10,4)     // [77] Menu
-            RC(4,11)     // [78] Left
-            RC(11,3)     // [79] Down
-            RC(11,4)     // [80] Right
+            RC(13, 0)      // [ 0] Esc
+            RC( 6, 0)      // [ 1] F1
+            RC( 0, 7)      // [ 2] F2
+            RC( 7, 0)      // [ 3] F3
+            RC( 8, 0)      // [ 4] F4
+            RC( 0, 9)      // [ 5] F5
+            RC( 9, 0)      // [ 6] F6
+            RC( 0,12)      // [ 7] F7
+            RC( 1,12)      // [ 8] F8
+            RC( 2,12)      // [ 9] F9
+            RC( 3,12)      // [10] F10
+            RC( 4,12)      // [11] F11
+            RC(12, 0)      // [12] F12
+            RC( 0, 5)      // [13] ~
+            RC( 5, 0)      // [14] !
+            RC( 0, 6)      // [15] @
+            RC( 6, 1)      // [16] #
+            RC( 1, 7)      // [17] $
+            RC( 7, 1)      // [18] %
+            RC( 0, 8)      // [19] ^
+            RC( 8, 1)      // [20] &
+            RC( 1, 9)      // [21] *
+            RC( 9, 1)      // [22] (
+            RC( 0,10)      // [23] )
+            RC(10, 0)      // [24] _
+            RC( 0,11)      // [25] +
+            RC(11, 0)      // [26] Backspace
+            RC( 1, 5)      // [27] Tab
+            RC( 5, 1)      // [28] Q
+            RC( 1, 6)      // [29] W
+            RC( 6, 2)      // [30] E
+            RC( 2, 7)      // [31] R
+            RC( 7, 2)      // [32] T
+            RC( 1, 8)      // [33] Y
+            RC( 8, 2)      // [34] U
+            RC( 2, 9)      // [35] I
+            RC( 9, 2)      // [36] O
+            RC( 1,10)      // [37] P
+            RC(10, 1)      // [38] {
+            RC( 1,11)      // [39] }
+            RC(11, 1)      // [40] |
+            RC(12, 1)      // [41] PrtSc
+            RC(12, 3)      // [42] Home
+            RC( 2, 5)      // [43] Caps Lock
+            RC( 5, 2)      // [44] A
+            RC( 2, 6)      // [45] S
+            RC( 6, 3)      // [46] D
+            RC( 3, 7)      // [47] F
+            RC( 7, 3)      // [48] G
+            RC( 2, 8)      // [49] H
+            RC( 8, 3)      // [50] J
+            RC( 3, 9)      // [51] K
+            RC( 9, 3)      // [52] L
+            RC( 2,10)      // [53] :
+            RC(10, 2)      // [54] "
+            RC( 2,11)      // [55] Enter
+            RC(12, 2)      // [56] Delete
+            RC(12, 4)      // [57] End
+            RC( 3, 5)      // [58] Shift(L)
+            RC( 5, 3)      // [59] Z
+            RC( 3, 6)      // [60] X
+            RC( 6, 4)      // [61] C
+            RC( 4, 7)      // [62] V
+            RC( 7, 4)      // [63] B
+            RC( 3, 8)      // [64] N
+            RC( 8, 4)      // [65] M
+            RC( 4, 9)      // [66] <
+            RC( 9, 4)      // [67] >
+            RC( 3,10)      // [68] ?
+            RC( 3,11)      // [69] Shift(R)
+            RC(11, 2)      // [70] Up
+            RC( 4, 5)      // [71] Ctrl(L)
+            RC( 5, 4)      // [72] Win(L)
+            RC( 4, 6)      // [73] Alt(L)
+            RC( 4, 8)      // [74] Space
+            RC( 4,10)      // [75] Alt(R)
+            RC(10, 3)      // [76] Win(R)
+            RC(10, 4)      // [77] Menu
+            RC( 4,11)      // [78] Left
+            RC(11, 3)      // [79] Down
+            RC(11, 4)      // [80] Right
         >;
     };
 };
 
-// Assign this shield's kscan to the physical layout defined in
-// p79nicenano-layouts.dtsi (which already carries `transform`).
-// Studio requires this to live on the layout node, not in `chosen`.
-// This must be a top-level block (sibling of `/ { ... }`), not nested
-// inside it -- label references are always root-level. (This exact
-// mistake broke the build two revisions ago -- re-checked this time.)
+// Studio reads both the scanner and transform through the physical layout.
 &default_layout {
     kscan = <&kscan0>;
 };

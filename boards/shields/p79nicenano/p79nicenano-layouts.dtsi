@@ -1,17 +1,6 @@
-// Physical layout for the Primer79 (yushakobo), converted from the vendor
-// QMK info.json "LAYOUT" (https://shop.yushakobo.jp/products/5384).
-//
-// All 81 physical key positions below are transcribed directly from that
-// info.json (units converted from KLE "u" to ZMK centi-keyunits, i.e. x100).
-// This part is NOT dependent on the electrical matrix wiring, so it is safe
-// to use as-is.
-//
-// The `transform` property below points at `default_transform`, which is
-// defined in p79nicenano.overlay. `kscan` is assigned to this layout from
-// that same overlay (via `&default_layout { kscan = <&kscan0>; };`) rather
-// than through a `chosen` node -- ZMK Studio requires it this way. See the
-// big comment block at the top of p79nicenano.overlay for the matrix's
-// current status.
+// Primer79 physical layout converted from the vendor QMK info.json.
+// Coordinates use ZMK centi-keyunits (1u = 100). The key order matches the
+// transform in p79nicenano.overlay and both layers in p79nicenano.keymap.
 
 #include <physical_layouts.dtsi>
 
@@ -23,8 +12,7 @@
             compatible = "zmk,physical-layout";
             display-name = "Primer79 Standard";
 
-            // Links the physical keys below to the electrical matrix.
-            // Defined in p79nicenano.overlay -- currently a placeholder.
+            // Links these physical positions to the bidirectional matrix.
             transform = <&default_transform>;
 
             // Format per key: width, height, x, y, rotation, rx, ry

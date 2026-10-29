@@ -24,11 +24,11 @@
     &kp CAPS &kp A &kp S &kp D &kp F &kp G &kp H &kp J &kp K &kp L &kp SEMI &kp SQT &kp RET &kp DEL &kp END
     &kp LSHFT &kp Z &kp X &kp C &kp V &kp B &kp N &kp M &kp COMMA &kp DOT &kp FSLH &kp RSHFT
     &kp UP
-    &kp LCTRL &kp LGUI &kp LALT &kp SPACE &kp RALT &kp RGUI &kp K_APPLICATION
+    &kp LCTRL &kp LGUI &kp LALT &kp SPACE &kp RALT &mo 1 &kp K_APPLICATION
     &kp LEFT &kp DOWN &kp RIGHT
             >;
 
-            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>, <&inc_dec_kp C_BRI_UP C_BRI_DN>;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_BRI_UP C_BRI_DN>;
         };
 
         fn_layer {
@@ -42,6 +42,8 @@
     &trans &trans &trans &trans &trans &trans &trans
     &trans &trans &trans
             >;
+
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_BRI_UP C_BRI_DN>;
         };
     };
 };
